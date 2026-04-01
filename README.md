@@ -30,21 +30,25 @@ It uses a CNN trained on the MNIST dataset and includes preprocessing steps to h
 ## 🏗 Project Structure
 
 ```
-DigitAI/
+digit-vision-ai/
 │
-├── data/
-│   └── digit.png              # Input image for prediction
+├── data/                          # Input & test images
+│   ├── digit.png                  # Single test image
+│   └── samples/                   # (optional) multiple images
+│       ├── img1.png
+│       ├── img2.png
+│       └── img3.png
 │
-├── models/
-│   └── digit_model.h5         # Trained CNN model
+├── models/                        # Trained models
+│   └── digit_model.h5
 │
-├── src/
-│   ├── train.py               # Model training script
-│   └── predict.py             # Prediction script
+├── src/                           # Source code
+│   ├── train.py                   # Train CNN model
+│   ├── predict.py                 # Predict digits
+│   └── utils.py                   # Preprocessing function
 │
-├── requirements.txt           # Dependencies
-├── README.md                  # Project documentation
-└── .gitignore
+├── requirements.txt               # Dependencies
+├── README.md                      # Documentation
 ```
 
 ---
