@@ -4,13 +4,13 @@ import os
 from tensorflow.keras.models import load_model
 
 # =========================
-# Path Setup (IMPORTANT)
+# Paths
 # =========================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(BASE_DIR)
 
 model_path = os.path.join(PROJECT_ROOT, "models", "digit_model.h5")
-image_path = os.path.join(PROJECT_ROOT, "data", "digit.png")
+data_folder = os.path.join(PROJECT_ROOT, "data")
 
 # =========================
 # Load Model
@@ -18,51 +18,35 @@ image_path = os.path.join(PROJECT_ROOT, "data", "digit.png")
 model = load_model(model_path)
 
 # =========================
-# Load Image
+# Loop through all images
 # =========================
-img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+for file in os.listdir(data_folder):
 
-if img is None:
-    print("❌ Error: Image not found at", image_path)
-    exit()
+    if file.endswith(".png") or file.endswith(".jpg"):
 
-# =========================
-# Preprocessing (MNIST-style)
-# =========================
+        img_path = os.path.join(data_folder, file)
+        img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
 
-# Invert colors
-img = 255 - img
+        if img is None:
+            print(f"❌ Skipping {file} (not readable)")
+            continue
 
-# Threshold (remove noise)
-_, img = cv2.threshold(img, 100, 255, cv2.THRESH_BINARY)
+        # Preprocessing
+        img = 255 - img
+        _, img = cv2.threshold(img, 100, 255, cv2.THRESH_BINARY)
 
-# Find bounding box
-coords = cv2.findNonZero(img)
-x, y, w, h = cv2.boundingRect(coords)
+        coords = cv2.findNonZero(img)
+        x, y, w, h = cv2.boundingRect(coords)
+        img = img[y:y+h, x:x+w]
 
-# Crop digit
-img = img[y:y+h, x:x+w]
+        img = cv2.resize(img, (20, 20))
+        img = np.pad(img, ((4,4),(4,4)), mode='constant')
 
-# Resize to 20x20
-img = cv2.resize(img, (20, 20))
+        img = img / 255.0
+        img = img.reshape(1, 28, 28)
 
-# Pad to 28x28
-img = np.pad(img, ((4,4),(4,4)), mode='constant')
+        # Prediction
+        prediction = model.predict(img)
+        digit = np.argmax(prediction)
 
-# Normalize
-img = img / 255.0
-
-# Reshape for model
-img = img.reshape(1, 28, 28)
-
-# =========================
-# Prediction
-# =========================
-prediction = model.predict(img)
-digit = np.argmax(prediction)
-
-# =========================
-# Output
-# =========================
-print("✅ Predicted digit:", digit)
-print("📊 Probabilities:", prediction)
+        print(f"📁 {file} → Predicted: {digit}")
