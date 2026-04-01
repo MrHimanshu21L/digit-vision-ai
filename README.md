@@ -54,7 +54,7 @@ DigitAI/
 Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/digit-vision-ai.git
+git clone https://github.com/MrHimanshu21L/digit-vision-ai.git
 cd digit-vision-ai
 ```
 
