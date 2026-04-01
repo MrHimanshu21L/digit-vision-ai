@@ -1,7 +1,7 @@
-import numpy as np
-import cv2
 import os
+import numpy as np
 from tensorflow.keras.models import load_model
+from utils import preprocess_image
 
 # =========================
 # Paths
@@ -17,36 +17,27 @@ data_folder = os.path.join(PROJECT_ROOT, "data")
 # =========================
 model = load_model(model_path)
 
+print("✅ Model loaded successfully\n")
+
 # =========================
 # Loop through all images
 # =========================
 for file in os.listdir(data_folder):
 
-    if file.endswith(".png") or file.endswith(".jpg"):
+    if file.lower().endswith((".png", ".jpg", ".jpeg")):
 
         img_path = os.path.join(data_folder, file)
-        img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
 
-        if img is None:
-            print(f"❌ Skipping {file} (not readable)")
-            continue
+        try:
+            # Preprocess using utils
+            img = preprocess_image(img_path)
 
-        # Preprocessing
-        img = 255 - img
-        _, img = cv2.threshold(img, 100, 255, cv2.THRESH_BINARY)
+            # Prediction
+            prediction = model.predict(img, verbose=0)
+            digit = np.argmax(prediction)
+            confidence = np.max(prediction)
 
-        coords = cv2.findNonZero(img)
-        x, y, w, h = cv2.boundingRect(coords)
-        img = img[y:y+h, x:x+w]
+            print(f"📁 {file} → Predicted: {digit} (Confidence: {confidence:.4f})")
 
-        img = cv2.resize(img, (20, 20))
-        img = np.pad(img, ((4,4),(4,4)), mode='constant')
-
-        img = img / 255.0
-        img = img.reshape(1, 28, 28)
-
-        # Prediction
-        prediction = model.predict(img)
-        digit = np.argmax(prediction)
-
-        print(f"📁 {file} → Predicted: {digit}")
+        except Exception as e:
+            print(f"❌ Error processing {file}: {e}")
